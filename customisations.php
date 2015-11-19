@@ -22,7 +22,7 @@ class Pootle_Customisations {
 	public function plugins_loaded() {
 		$php = get_option( 'pootle_custo_php' );
 		$code = str_replace( array( '<?php', '<?', '?>', ), '', $php['php'] );
-		if ( ! empty( $php['apply'] ) || ! empty( $_GET['pc_test'] ) ) {
+		if (  ! is_admin() || ! empty( $php['admin'] ) ) {
 			eval( $code );
 		}
 	}
@@ -33,6 +33,9 @@ class Pootle_Customisations {
 			<?php echo get_option( 'pootle_custo_css' ) ?>
 			@media only screen and (max-width:768px) {
 			<?php echo get_option( 'pootle_custo_mob_css' ) ?>
+			}
+			@media only screen and (min-width:768px) {
+			<?php echo get_option( 'pootle_custo_desk_css' ) ?>
 			}
 		</style>
 		<?php
@@ -56,7 +59,7 @@ class Pootle_Customisations {
 			<style>
 				#editor{
 					position: relative;
-					width: 550px;
+					width: 750px;
 					height: 520px;
 				}
 			</style>
@@ -70,11 +73,14 @@ class Pootle_Customisations {
 			if( isset( $_GET[ 'tab' ] ) ) {
 				$active_tab = $_GET[ 'tab' ];
 			} // end if
+			/** @var string Editor type */
+			$editor_type = 'php' == $active_tab ? 'php' : 'css'
 			?>
 
 			<h2 class="nav-tab-wrapper">
 				<a href="?page=pootle_customizations&tab=css" class="nav-tab <?php echo $active_tab == 'css' ? 'nav-tab-active' : ''; ?>">CSS</a>
 				<a href="?page=pootle_customizations&tab=mob_css" class="nav-tab <?php echo $active_tab == 'mob_css' ? 'nav-tab-active' : ''; ?>">Mobile CSS</a>
+				<a href="?page=pootle_customizations&tab=desk_css" class="nav-tab <?php echo $active_tab == 'desk_css' ? 'nav-tab-active' : ''; ?>">Desktop CSS</a>
 				<a href="?page=pootle_customizations&tab=php" class="nav-tab <?php echo $active_tab == 'php' ? 'nav-tab-active' : ''; ?>">Functions</a>
 			</h2>
 
@@ -86,14 +92,12 @@ class Pootle_Customisations {
 				?>
 			</form>
 			<script src="//cdnjs.cloudflare.com/ajax/libs/ace/1.2.2/ace.js"></script>
-			<script src="//cdnjs.cloudflare.com/ajax/libs/ace/1.2.2/mode-php.js"></script>
-			<script src="//cdnjs.cloudflare.com/ajax/libs/ace/1.2.2/mode-css.js"></script>
+			<script src="//cdnjs.cloudflare.com/ajax/libs/ace/1.2.2/mode-<?php echo $editor_type ?>.js"></script>
 			<script>
 				(
 					function ( $ ) {
 						var editor = ace.edit( "editor" ),
-							EditorMode = ace.require("ace/mode/<?php echo 'php' == $active_tab ? 'php' : 'css' ?>").Mode,
-							$apply = $('[name="pootle_custo_php[apply]"]');
+							EditorMode = ace.require("ace/mode/<?php echo $editor_type ?>").Mode;
 						editor.session.setMode( new EditorMode() );
 						editor.on( 'change', function ( e ) {
 							$('textarea.hidden').val( editor.getValue() );
@@ -123,40 +127,37 @@ class Pootle_Customisations {
 		);
 
 		add_settings_section(
+			'pootle_custo_desk_css',
+			__( 'Custom Mobile CSS Styles', 'sandbox' ),
+			array( $this, 'render_section_desk_css' ),
+			'pootle_customizations_desk_css'
+		);
+
+		add_settings_section(
 			'pootle_custo_php',
 			__( 'Custom PHP code', 'sandbox' ),
 			array( $this, 'render_section_php' ),
 			'pootle_customizations_php'
 		);
 
-		// Finally, we register the fields with WordPress
 		register_setting(
 			'pootle_custo_css',
 			'pootle_custo_css'
 		);
 
-		// Finally, we register the fields with WordPress
 		register_setting(
 			'pootle_custo_mob_css',
 			'pootle_custo_mob_css'
 		);
 
-		// Finally, we register the fields with WordPress
+		register_setting(
+			'pootle_custo_desk_css',
+			'pootle_custo_desk_css'
+		);
+
 		register_setting(
 			'pootle_custo_php',
 			'pootle_custo_php'
-		);
-
-		// Next, we'll introduce the fields for toggling the visibility of content elements.
-		add_settings_field(
-			'show_header',
-			__( 'Header', 'sandbox' ),
-			'sandbox_toggle_header_callback',
-			'sandbox_theme_display_options',
-			'general_settings_section',
-			array(
-				__( 'Activate this setting to display the header.', 'sandbox' ),
-			)
 		);
 	}
 
@@ -176,16 +177,29 @@ class Pootle_Customisations {
 		<?php
 	}
 
+	public function render_section_desk_css() {
+		$value = get_option( 'pootle_custo_desk_css' );
+		?>
+		<textarea class="hidden" name="pootle_custo_desk_css"><?php echo $value; ?></textarea>
+		<div id="editor"><?php echo $value ?></div>
+		<?php
+	}
+
 	public function render_section_php() {
-		$value = get_option( 'pootle_custo_php', array(
+		$value = wp_parse_args( get_option( 'pootle_custo_php', array() ), array(
 			'php' => "<?php\n\n\n?>",
-			'save' => false,
-			) );
+			'admin' => false,
+		) );
 		?>
 		<textarea class="hidden" name="pootle_custo_php[php]"><?php echo $value['php']; ?></textarea>
 		<div id="editor"><?php esc_html_e( $value['php'] ) ?></div>
-		<h4>Please <a href="<?php echo site_url() ?>?pc_test=1">click here</a> to test your code on home page before applying, If you get a white page error or fatal error don't apply it.</h4>
-		<label><input type="checkbox" value="1" name="pootle_custo_php[apply]"> Apply php code</label>
+		<br><br>
+		<b><span class="attention">Warning:</span> If you are a young padawan in php, don't enable the setting below.</b><br>
+		<b>Jedi's in php consider checking the code on frontend before applying on the admin end.</b><br>
+		<label>
+			<input type="checkbox" value="1" name="pootle_custo_php[admin]" <?php checked( $value['admin'], 1 ) ?>>
+			Apply php on admin end
+		</label>
 		<?php
 	}
 
