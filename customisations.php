@@ -3,10 +3,10 @@
  * Plugin Name: Customisations
  * Description: A very simple plugin to house custom css and functions.
  * Version: 	1.0.0
- * Author: 		shramee
- * Author URI: 	http://www.shramee.com/
+ * Author: 		pootlepress
+ * Author URI: 	http://www.pootlepress.com/
  * @developer Shramee <shramee.srivastav@gmail.com>
- * @package Theme_Customisations
+ * @package Customisations
  */
 if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
 
@@ -16,7 +16,7 @@ class Pootle_Customisations {
 		add_action( 'admin_menu', array( $this, 'menu' ), 999 );
 		add_action( 'admin_init', array( $this, 'fields' ) );
 		add_action( 'plugins_loaded', array( $this, 'plugins_loaded' ) );
-		add_action( 'wp_head', array( $this, 'head' ) );
+		add_action( 'wp_enqueue_scripts', array( $this, 'scripts' ) );
 	}
 
 	public function plugins_loaded() {
@@ -27,18 +27,14 @@ class Pootle_Customisations {
 		}
 	}
 
-	public function head() {
-		?>
-		<style id="pootle-customizations-css">
-			<?php echo get_option( 'pootle_custo_css' ) ?>
-			@media only screen and (max-width:768px) {
-			<?php echo get_option( 'pootle_custo_mob_css' ) ?>
-			}
-			@media only screen and (min-width:768px) {
-			<?php echo get_option( 'pootle_custo_desk_css' ) ?>
-			}
-		</style>
-		<?php
+	public function scripts() {
+		wp_enqueue_style( 'customizations_css', plugin_dir_url( __FILE__ ) . '/data/main.css' );
+		wp_enqueue_script( 'customizations_javascript', plugin_dir_url( __FILE__ ) . '/data/main.js' );
+		if ( apply_filters( 'pootle_customizations_dev', false ) ) {
+			wp_enqueue_style( 'customizations_mob_css', plugin_dir_url( __FILE__ ) . '/data/mobile.css' );
+			wp_enqueue_style( 'customizations_desk_css', plugin_dir_url( __FILE__ ) . '/data/desktop.css' );
+		}
+
 	}
 
 	public function menu() {
@@ -79,14 +75,15 @@ class Pootle_Customisations {
 				$active_tab = $_GET[ 'tab' ];
 			} // end if
 			/** @var string Editor type */
-			$editor_type = 'php' == $active_tab ? 'php' : 'css'
+			$editor_type = in_array( $active_tab, array( 'php', 'javascript' ) ) ? $active_tab : 'css'
 			?>
 
 			<h2 class="nav-tab-wrapper">
 				<a href="?page=pootle_customizations&tab=css" class="nav-tab <?php echo $active_tab == 'css' ? 'nav-tab-active' : ''; ?>">CSS</a>
+				<a href="?page=pootle_customizations&tab=javascript" class="nav-tab <?php echo $active_tab == 'javascript' ? 'nav-tab-active' : ''; ?>">JS</a>
 				<?php if ( apply_filters( 'pootle_customizations_dev', false ) ) { ?>
-				<a href="?page=pootle_customizations&tab=mob_css" class="nav-tab <?php echo $active_tab == 'mob_css' ? 'nav-tab-active' : ''; ?>">Mobile CSS</a>
-				<a href="?page=pootle_customizations&tab=desk_css" class="nav-tab <?php echo $active_tab == 'desk_css' ? 'nav-tab-active' : ''; ?>">Desktop CSS</a>
+					<a href="?page=pootle_customizations&tab=mob_css" class="nav-tab <?php echo $active_tab == 'mob_css' ? 'nav-tab-active' : ''; ?>">Mobile CSS</a>
+					<a href="?page=pootle_customizations&tab=desk_css" class="nav-tab <?php echo $active_tab == 'desk_css' ? 'nav-tab-active' : ''; ?>">Desktop CSS</a>
 				<?php } ?>
 				<a href="?page=pootle_customizations&tab=php" class="nav-tab <?php echo $active_tab == 'php' ? 'nav-tab-active' : ''; ?>">Functions</a>
 			</h2>
@@ -127,6 +124,13 @@ class Pootle_Customisations {
 		);
 
 		add_settings_section(
+			'pootle_custo_javascript',
+			__( 'Custom Javascript', 'sandbox' ),
+			array( $this, 'render_section_javascript' ),
+			'pootle_customizations_javascript'
+		);
+
+		add_settings_section(
 			'pootle_custo_mob_css',
 			__( 'Custom Mobile CSS Styles', 'sandbox' ),
 			array( $this, 'render_section_mob_css' ),
@@ -149,22 +153,32 @@ class Pootle_Customisations {
 
 		register_setting(
 			'pootle_custo_css',
-			'pootle_custo_css'
+			'pootle_custo_css',
+			array( $this, 'make_file_css' )
+		);
+
+		register_setting(
+			'pootle_custo_javascript',
+			'pootle_custo_javascript',
+			array( $this, 'make_file_javascript' )
 		);
 
 		register_setting(
 			'pootle_custo_mob_css',
-			'pootle_custo_mob_css'
+			'pootle_custo_mob_css',
+			array( $this, 'make_file_mob_css' )
 		);
 
 		register_setting(
 			'pootle_custo_desk_css',
-			'pootle_custo_desk_css'
+			'pootle_custo_desk_css',
+			array( $this, 'make_file_desk_css' )
 		);
 
 		register_setting(
 			'pootle_custo_php',
-			'pootle_custo_php'
+			'pootle_custo_php',
+			array( $this, 'make_file_php' )
 		);
 	}
 
@@ -173,6 +187,14 @@ class Pootle_Customisations {
 		?>
 		<p>Head over to <a href="http://www.pootlepress.com/customizations">http://www.pootlepress.com/customizations</a> to grab some awesome media query snippets <span class="large"><?php echo convert_smilies( ";)" ); ?></span>.</p>
 		<textarea class="hidden" name="pootle_custo_css"><?php echo $value; ?></textarea>
+		<div id="editor"><?php echo $value ?></div>
+		<?php
+	}
+
+	public function render_section_javascript() {
+		$value = get_option( 'pootle_custo_javascript' );
+		?>
+		<textarea class="hidden" name="pootle_custo_javascript"><?php echo $value; ?></textarea>
 		<div id="editor"><?php echo $value ?></div>
 		<?php
 	}
@@ -214,11 +236,73 @@ class Pootle_Customisations {
 	}
 
 	public function theme_customisations_template( $template ) {
-		if ( file_exists( untrailingslashit( plugin_dir_path( __FILE__ ) ) . '/custom/templates/' . basename( $template ) ) ) {
-			$template = untrailingslashit( plugin_dir_path( __FILE__ ) ) . '/custom/templates/' . basename( $template );
-		}
 
 		return $template;
+	}
+
+	/**
+	 * Create file for css
+	 * @param string $val Current value of the field
+	 * @return string Field data
+	 * Since 1.0.0
+	 */
+	public function make_file_css ( $val ) {
+		return $this->make_file( 'main.css', $val );
+	}
+
+	/**
+	 * Create file for javascript
+	 * @param string $val Current value of the field
+	 * @return string Field data
+	 * Since 1.0.0
+	 */
+	public function make_file_javascript ( $val ) {
+		return $this->make_file( 'main.js', $val );
+	}
+
+	/**
+	 * Create file for mob_css
+	 * @param string $val Current value of the field
+	 * @return string Field data
+	 * Since 1.0.0
+	 */
+	public function make_file_mob_css ( $val ) {
+		return $this->make_file( 'mobile.css', "@media only screen and (max-width:767px) {\n$val\n}" );
+	}
+
+	/**
+	 * Create file for desk_css
+	 * @param string $val Current value of the field
+	 * @return string Field data
+	 * Since 1.0.0
+	 */
+	public function make_file_desk_css ( $val ) {
+		return $this->make_file( 'desktop.css', "@media only screen and (min-width:768px) {\n$val\n}" );
+	}
+
+	/**
+	 * Create file for php
+	 * @param string $val Current value of the field
+	 * @return array Field data
+	 * Since 1.0.0
+	 */
+	public function make_file_php ( $val ) {
+		if( $this->make_file( 'main.php', $val['php'] ) ){
+			return $val;
+		}
+	}
+
+	/**
+	 * Creates the file
+	 * @param string $file_name
+	 * @param string $data
+	 * @return true
+	 */
+	public function make_file( $file_name, $data ) {
+		$file = fopen( dirname( __FILE__ ) . '/data/' . $file_name, "w" ) or die( "Unable to access/create file" );
+		fwrite( $file, $data );
+		fclose( $file );
+		return $data;
 	}
 } // End Class
 
