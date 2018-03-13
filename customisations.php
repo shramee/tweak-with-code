@@ -15,7 +15,9 @@ class Tweak_With_Code {
 	public function __construct () {
 		add_action( 'admin_menu', array( $this, 'menu' ), 999 );
 		add_action( 'admin_init', array( $this, 'fields' ) );
-		add_action( 'plugins_loaded', array( $this, 'plugins_loaded' ) );
+		if ( empty( $_REQUEST[ 'tweak_with_code_rescue' ] ) ) {
+			add_action( 'plugins_loaded', array( $this, 'plugins_loaded' ) );
+		}
 		add_action( 'wp_enqueue_scripts', array( $this, 'scripts' ) );
 	}
 
