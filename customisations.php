@@ -30,10 +30,8 @@ class Tweak_With_Code {
 	public function scripts() {
 		wp_enqueue_style( 'customizations_css', plugin_dir_url( __FILE__ ) . '/data/main.css' );
 		wp_enqueue_script( 'customizations_javascript', plugin_dir_url( __FILE__ ) . '/data/main.js' );
-		if ( apply_filters( 'tweak_with_code_dev', false ) ) {
-			wp_enqueue_style( 'customizations_mob_css', plugin_dir_url( __FILE__ ) . '/data/mobile.css' );
-			wp_enqueue_style( 'customizations_desk_css', plugin_dir_url( __FILE__ ) . '/data/desktop.css' );
-		}
+		wp_enqueue_style( 'customizations_mob_css', plugin_dir_url( __FILE__ ) . '/data/mobile.css' );
+		wp_enqueue_style( 'customizations_desk_css', plugin_dir_url( __FILE__ ) . '/data/desktop.css' );
 
 	}
 
@@ -81,10 +79,8 @@ class Tweak_With_Code {
 			<h2 class="nav-tab-wrapper">
 				<a href="?page=tweak_with_code&tab=css" class="nav-tab <?php echo $active_tab == 'css' ? 'nav-tab-active' : ''; ?>">CSS</a>
 				<a href="?page=tweak_with_code&tab=javascript" class="nav-tab <?php echo $active_tab == 'javascript' ? 'nav-tab-active' : ''; ?>">JS</a>
-				<?php if ( apply_filters( 'tweak_with_code_dev', false ) ) { ?>
-					<a href="?page=tweak_with_code&tab=mob_css" class="nav-tab <?php echo $active_tab == 'mob_css' ? 'nav-tab-active' : ''; ?>">Mobile CSS</a>
-					<a href="?page=tweak_with_code&tab=desk_css" class="nav-tab <?php echo $active_tab == 'desk_css' ? 'nav-tab-active' : ''; ?>">Desktop CSS</a>
-				<?php } ?>
+				<a href="?page=tweak_with_code&tab=mob_css" class="nav-tab <?php echo $active_tab == 'mob_css' ? 'nav-tab-active' : ''; ?>">Mobile CSS</a>
+				<a href="?page=tweak_with_code&tab=desk_css" class="nav-tab <?php echo $active_tab == 'desk_css' ? 'nav-tab-active' : ''; ?>">Desktop CSS</a>
 				<a href="?page=tweak_with_code&tab=php" class="nav-tab <?php echo $active_tab == 'php' ? 'nav-tab-active' : ''; ?>">Functions</a>
 			</h2>
 
