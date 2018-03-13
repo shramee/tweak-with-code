@@ -1,16 +1,16 @@
 <?php
 /**
- * Plugin Name: Customisations
+ * Plugin Name: Tweak with code
  * Description: A very simple plugin to house custom css and functions.
  * Version: 	1.0.0
- * Author: 		pootlepress
- * Author URI: 	http://www.pootlepress.com/
+ * Author: 		Shramee
+ * Author URI: 	http://www.shramee.me/
  * @developer Shramee <shramee.srivastav@gmail.com>
  * @package Customisations
  */
 if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
 
-class Pootle_Customisations {
+class Tweak_With_Code {
 
 	public function __construct () {
 		add_action( 'admin_menu', array( $this, 'menu' ), 999 );
@@ -20,7 +20,7 @@ class Pootle_Customisations {
 	}
 
 	public function plugins_loaded() {
-		$php = get_option( 'pootle_custo_php' );
+		$php = get_option( 'tweak_with_code_php' );
 		$code = str_replace( array( '<?php', '<?', '?>', ), '', $php['php'] );
 		if (  ! is_admin() || ! empty( $php['admin'] ) ) {
 			eval( $code );
@@ -30,7 +30,7 @@ class Pootle_Customisations {
 	public function scripts() {
 		wp_enqueue_style( 'customizations_css', plugin_dir_url( __FILE__ ) . '/data/main.css' );
 		wp_enqueue_script( 'customizations_javascript', plugin_dir_url( __FILE__ ) . '/data/main.js' );
-		if ( apply_filters( 'pootle_customizations_dev', false ) ) {
+		if ( apply_filters( 'tweak_with_code_dev', false ) ) {
 			wp_enqueue_style( 'customizations_mob_css', plugin_dir_url( __FILE__ ) . '/data/mobile.css' );
 			wp_enqueue_style( 'customizations_desk_css', plugin_dir_url( __FILE__ ) . '/data/desktop.css' );
 		}
@@ -42,7 +42,7 @@ class Pootle_Customisations {
         'Customizations',
         'Customizations',
         'edit_theme_options',
-        'pootle_customizations',
+        'tweak_with_code',
         array( $this, 'render_page' )
     );
 	}
@@ -79,19 +79,19 @@ class Pootle_Customisations {
 			?>
 
 			<h2 class="nav-tab-wrapper">
-				<a href="?page=pootle_customizations&tab=css" class="nav-tab <?php echo $active_tab == 'css' ? 'nav-tab-active' : ''; ?>">CSS</a>
-				<a href="?page=pootle_customizations&tab=javascript" class="nav-tab <?php echo $active_tab == 'javascript' ? 'nav-tab-active' : ''; ?>">JS</a>
-				<?php if ( apply_filters( 'pootle_customizations_dev', false ) ) { ?>
-					<a href="?page=pootle_customizations&tab=mob_css" class="nav-tab <?php echo $active_tab == 'mob_css' ? 'nav-tab-active' : ''; ?>">Mobile CSS</a>
-					<a href="?page=pootle_customizations&tab=desk_css" class="nav-tab <?php echo $active_tab == 'desk_css' ? 'nav-tab-active' : ''; ?>">Desktop CSS</a>
+				<a href="?page=tweak_with_code&tab=css" class="nav-tab <?php echo $active_tab == 'css' ? 'nav-tab-active' : ''; ?>">CSS</a>
+				<a href="?page=tweak_with_code&tab=javascript" class="nav-tab <?php echo $active_tab == 'javascript' ? 'nav-tab-active' : ''; ?>">JS</a>
+				<?php if ( apply_filters( 'tweak_with_code_dev', false ) ) { ?>
+					<a href="?page=tweak_with_code&tab=mob_css" class="nav-tab <?php echo $active_tab == 'mob_css' ? 'nav-tab-active' : ''; ?>">Mobile CSS</a>
+					<a href="?page=tweak_with_code&tab=desk_css" class="nav-tab <?php echo $active_tab == 'desk_css' ? 'nav-tab-active' : ''; ?>">Desktop CSS</a>
 				<?php } ?>
-				<a href="?page=pootle_customizations&tab=php" class="nav-tab <?php echo $active_tab == 'php' ? 'nav-tab-active' : ''; ?>">Functions</a>
+				<a href="?page=tweak_with_code&tab=php" class="nav-tab <?php echo $active_tab == 'php' ? 'nav-tab-active' : ''; ?>">Functions</a>
 			</h2>
 
 			<form method="post" action="options.php">
 				<?php
-				settings_fields( 'pootle_custo_' . $active_tab );
-				do_settings_sections( 'pootle_customizations_' . $active_tab );
+				settings_fields( 'tweak_with_code_' . $active_tab );
+				do_settings_sections( 'tweak_with_code_' . $active_tab );
 				submit_button();
 				?>
 			</form>
@@ -117,119 +117,118 @@ class Pootle_Customisations {
 
 		// First, we register a section. This is necessary since all future options must belong to a
 		add_settings_section(
-			'pootle_custo_css',
+			'tweak_with_code_css',
 			__( 'Custom CSS Styles', 'sandbox' ),
 			array( $this, 'render_section_css' ),
-			'pootle_customizations_css'
+			'tweak_with_code_css'
 		);
 
 		add_settings_section(
-			'pootle_custo_javascript',
+			'tweak_with_code_javascript',
 			__( 'Custom Javascript', 'sandbox' ),
 			array( $this, 'render_section_javascript' ),
-			'pootle_customizations_javascript'
+			'tweak_with_code_javascript'
 		);
 
 		add_settings_section(
-			'pootle_custo_mob_css',
+			'tweak_with_code_mob_css',
 			__( 'Custom Mobile CSS Styles', 'sandbox' ),
 			array( $this, 'render_section_mob_css' ),
-			'pootle_customizations_mob_css'
+			'tweak_with_code_mob_css'
 		);
 
 		add_settings_section(
-			'pootle_custo_desk_css',
+			'tweak_with_code_desk_css',
 			__( 'Custom Mobile CSS Styles', 'sandbox' ),
 			array( $this, 'render_section_desk_css' ),
-			'pootle_customizations_desk_css'
+			'tweak_with_code_desk_css'
 		);
 
 		add_settings_section(
-			'pootle_custo_php',
+			'tweak_with_code_php',
 			__( 'Custom PHP code', 'sandbox' ),
 			array( $this, 'render_section_php' ),
-			'pootle_customizations_php'
+			'tweak_with_code_php'
 		);
 
 		register_setting(
-			'pootle_custo_css',
-			'pootle_custo_css',
+			'tweak_with_code_css',
+			'tweak_with_code_css',
 			array( $this, 'make_file_css' )
 		);
 
 		register_setting(
-			'pootle_custo_javascript',
-			'pootle_custo_javascript',
+			'tweak_with_code_javascript',
+			'tweak_with_code_javascript',
 			array( $this, 'make_file_javascript' )
 		);
 
 		register_setting(
-			'pootle_custo_mob_css',
-			'pootle_custo_mob_css',
+			'tweak_with_code_mob_css',
+			'tweak_with_code_mob_css',
 			array( $this, 'make_file_mob_css' )
 		);
 
 		register_setting(
-			'pootle_custo_desk_css',
-			'pootle_custo_desk_css',
+			'tweak_with_code_desk_css',
+			'tweak_with_code_desk_css',
 			array( $this, 'make_file_desk_css' )
 		);
 
 		register_setting(
-			'pootle_custo_php',
-			'pootle_custo_php',
+			'tweak_with_code_php',
+			'tweak_with_code_php',
 			array( $this, 'make_file_php' )
 		);
 	}
 
 	public function render_section_css() {
-		$value = get_option( 'pootle_custo_css' );
+		$value = get_option( 'tweak_with_code_css' );
 		?>
-		<p>Head over to <a href="http://www.pootlepress.com/customizations">http://www.pootlepress.com/customizations</a> to grab some awesome media query snippets <span class="large"><?php echo convert_smilies( ";)" ); ?></span>.</p>
-		<textarea class="hidden" name="pootle_custo_css"><?php echo $value; ?></textarea>
+		<textarea class="hidden" name="tweak_with_code_css"><?php echo $value; ?></textarea>
 		<div id="editor"><?php echo $value ?></div>
 		<?php
 	}
 
 	public function render_section_javascript() {
-		$value = get_option( 'pootle_custo_javascript' );
+		$value = get_option( 'tweak_with_code_javascript' );
 		?>
-		<textarea class="hidden" name="pootle_custo_javascript"><?php echo $value; ?></textarea>
+		<textarea class="hidden" name="tweak_with_code_javascript"><?php echo $value; ?></textarea>
 		<div id="editor"><?php echo $value ?></div>
 		<?php
 	}
 
 	public function render_section_mob_css() {
-		$value = get_option( 'pootle_custo_mob_css' );
+		$value = get_option( 'tweak_with_code_mob_css' );
 		?>
 		<p>CSS you put here will be applied to your website only on iPhones and other small mobile devices.</p>
-		<textarea class="hidden" name="pootle_custo_mob_css"><?php echo $value; ?></textarea>
+		<textarea class="hidden" name="tweak_with_code_mob_css"><?php echo $value; ?></textarea>
 		<div id="editor"><?php echo $value ?></div>
 		<?php
 	}
 
 	public function render_section_desk_css() {
-		$value = get_option( 'pootle_custo_desk_css' );
+		$value = get_option( 'tweak_with_code_desk_css' );
 		?>
 		<p>CSS you put here will be applied to your website on iPads and other larger mobile devices and desktops.</p>
-		<textarea class="hidden" name="pootle_custo_desk_css"><?php echo $value; ?></textarea>
+		<textarea class="hidden" name="tweak_with_code_desk_css"><?php echo $value; ?></textarea>
 		<div id="editor"><?php echo $value ?></div>
 		<?php
 	}
 
 	public function render_section_php() {
-		$value = wp_parse_args( get_option( 'pootle_custo_php', array() ), array(
+		$value = wp_parse_args( get_option( 'tweak_with_code_php', array() ), array(
 			'php' => "<?php\n\n\n?>",
 			'admin' => false,
 		) );
 		?>
-		<textarea class="hidden" name="pootle_custo_php[php]"><?php echo $value['php']; ?></textarea>
+		<textarea class="hidden" name="tweak_with_code_php[php]"><?php echo $value['php']; ?></textarea>
 		<div id="editor"><?php esc_html_e( $value['php'] ) ?></div>
 		<br><br>
 		<b><span class="attention">Warning:</span> If you are a young padawan in php, don't enable the setting below.</b><br>
 		<b>Jedi's in php consider checking the code on frontend before applying on the admin end.</b><br>
 		<label>
-			<input type="checkbox" value="1" name="pootle_custo_php[admin]" <?php checked( $value['admin'], 1 ) ?>>
+			<input type="checkbox" value="1" name="tweak_with_code_php[admin]" <?php checked( $value['admin'], 1 ) ?>>
 			Apply php on admin end
 		</label>
 		<?php
@@ -306,4 +305,4 @@ class Pootle_Customisations {
 	}
 } // End Class
 
-new Pootle_Customisations();
+new Tweak_With_Code();
